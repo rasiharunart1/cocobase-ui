@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import mqtt from "mqtt";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh } from "@mdi/js";
+import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh, mdiCounter, mdiScaleBalance } from "@mdi/js";
 
 export default function IoTDashboard() {
     const [weight, setWeight] = useState<number>(0);
@@ -177,7 +177,32 @@ export default function IoTDashboard() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Summary: Total Records */}
+                <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center border-t-4 border-[#8B5CF6] relative overflow-hidden">
+                    <div className="absolute top-4 left-4 text-gray-200">
+                        <Icon path={mdiCounter} size={2} />
+                    </div>
+                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Records</span>
+                    <div className="text-5xl font-black text-[#202224]">
+                        {logs.length}
+                    </div>
+                    <span className="text-sm text-gray-400 mt-2">Packing Logs</span>
+                </div>
+
+                {/* Summary: Total Weight */}
+                <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center border-t-4 border-[#F59E0B] relative overflow-hidden">
+                    <div className="absolute top-4 left-4 text-gray-200">
+                        <Icon path={mdiScaleBalance} size={2} />
+                    </div>
+                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Weight</span>
+                    <div className="text-5xl font-black text-[#202224]">
+                        {logs.reduce((sum, log) => sum + log.weight, 0).toFixed(1)}
+                        <span className="text-xl text-gray-300 font-light"> kg</span>
+                    </div>
+                    <span className="text-sm text-gray-400 mt-2">Combined Output</span>
+                </div>
+
                 {/* Real-time Weight Display */}
                 <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center border-t-4 border-[#00B69B] relative overflow-hidden">
                     <div className="absolute top-4 left-4 text-gray-300">
