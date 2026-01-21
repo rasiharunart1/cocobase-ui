@@ -39,7 +39,7 @@ export default function HomeView({
     );
 }
 
-const Chat = () => {
+export const Chat = () => {
     const nomorTujuan = 6285727055150;
     const linkToWA = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=Halo%20saya%20ingin%20bertanya%20mengenai%20Cocobase%2C%20`;
 
