@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import mqtt from "mqtt";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory } from "@mdi/js";
+import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh } from "@mdi/js";
 
 export default function IoTDashboard() {
     const [weight, setWeight] = useState<number>(0);
@@ -28,11 +28,13 @@ export default function IoTDashboard() {
         fetchLogs(selectedDevice.id);
 
         const client = mqtt.connect(MQTT_WS_URL, {
+            username: process.env.NEXT_PUBLIC_MQTT_USER,
+            password: process.env.NEXT_PUBLIC_MQTT_PASSWORD,
             clean: true,
             connectTimeout: 4000,
         });
 
-        const TOPIC_WEIGHT = `cocobase/loadcell/${selectedDevice.token}/weight`;
+        const TOPIC_WEIGHT = `cocobase/loadcell/${selectedDevice.token}/realtime`;
         const TOPIC_ALERTS = `cocobase/loadcell/${selectedDevice.token}/alerts`;
 
         client.on("connect", () => {
@@ -101,6 +103,45 @@ export default function IoTDashboard() {
             }
         } catch (error) {
             toast.error("Update failed");
+        }
+    };
+
+    const handleDeleteLog = async (logId: number) => {
+        if (!confirm("Are you sure you want to delete this log?")) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/${logId}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success("Log deleted");
+                fetchLogs(selectedDevice.id);
+            } else {
+                toast.error(data.message || "Failed to delete log");
+            }
+        } catch (error) {
+            toast.error("Failed to delete log");
+        }
+    };
+
+    const handleResetLogs = async () => {
+        if (!selectedDevice) return;
+        const confirmReset = prompt(`Type "RESET" to confirm deleting ALL logs for ${selectedDevice.name}?`);
+        if (confirmReset !== "RESET") return;
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/reset/${selectedDevice.id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success("All logs reset successfully");
+                fetchLogs(selectedDevice.id);
+            } else {
+                toast.error(data.message || "Failed to reset logs");
+            }
+        } catch (error) {
+            toast.error("Failed to reset logs");
         }
     };
 
@@ -198,12 +239,22 @@ export default function IoTDashboard() {
                         <Icon path={mdiHistory} size={1} className="text-[#00B69B]" />
                         <h2 className="text-lg font-bold">Packing History</h2>
                     </div>
-                    <button
-                        onClick={() => selectedDevice && fetchLogs(selectedDevice.id)}
-                        className="text-[#00B69B] text-sm font-bold hover:text-[#00947d] flex items-center gap-1"
-                    >
-                        REFRESH DATA
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleResetLogs}
+                            className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                        >
+                            <Icon path={mdiTrashCan} size={0.7} />
+                            RESET ALL
+                        </button>
+                        <button
+                            onClick={() => selectedDevice && fetchLogs(selectedDevice.id)}
+                            className="text-[#00B69B] text-sm font-bold hover:text-[#00947d] flex items-center gap-1"
+                        >
+                            <Icon path={mdiRefresh} size={0.8} />
+                            REFRESH
+                        </button>
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -212,12 +263,13 @@ export default function IoTDashboard() {
                                 <th className="px-6 py-4">Timestamp</th>
                                 <th className="px-6 py-4">Weight</th>
                                 <th className="px-6 py-4">Machine Status</th>
+                                <th className="px-6 py-4 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 text-sm">
                             {logs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/20">
+                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/20">
                                         {loading ? "Synchronizing logs..." : `No packing history found for ${selectedDevice?.name}`}
                                     </td>
                                 </tr>
@@ -232,6 +284,15 @@ export default function IoTDashboard() {
                                         </td>
                                         <td className="px-6 py-4 text-xs">
                                             <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full font-bold border border-green-100 uppercase tracking-tighter">Success Packed</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => handleDeleteLog(log.id)}
+                                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                                title="Delete Log"
+                                            >
+                                                <Icon path={mdiTrashCan} size={0.8} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

@@ -5,6 +5,7 @@ import {
   mdiPackageVariantClosed,
   mdiCheckboxMarkedOutline,
   mdiSort,
+  mdiRobot,
 } from "@mdi/js";
 import LineChart from "@/app/ui/admin/chart";
 import { getData } from "@/app/utils/fetchData";
@@ -48,7 +49,7 @@ export default async function CardTopAdmin() {
             <Icon path={mdiCalendarRange} size={2} color="#83450F" />
           </div>
         </div>
-        
+
         {/* Disortir */}
         <div className="bg-white p-5 rounded-lg shadow-md flex justify-between mt-5">
           <div>
@@ -65,13 +66,26 @@ export default async function CardTopAdmin() {
         {/* Dikemas */}
         <div className="bg-white p-5 rounded-lg shadow-md flex justify-between mt-5">
           <div>
-            <p className="text-base">Dikemas</p>
+            <p className="text-base">Dikemas (Manual)</p>
             <h2 className="text-2xl tracking-wide font-semibold mt-4">
               {keterangan[3]?.nilai ?? 0}
             </h2>
           </div>
           <div className="bg-[#fa9d9d] p-3 flex items-center justify-center aspect-square rounded-3xl w-14 h-14">
             <Icon path={mdiPackageVariantClosed} size={2} color="#C63535" />
+          </div>
+        </div>
+
+        {/* Total Kemas Mesin */}
+        <div className="bg-white p-5 rounded-lg shadow-md flex justify-between mt-5">
+          <div>
+            <p className="text-base">Total Kemas Mesin</p>
+            <h2 className="text-2xl tracking-wide font-semibold mt-4">
+              {keterangan[6]?.nilai ?? 0}
+            </h2>
+          </div>
+          <div className="bg-[#B9C5FF] p-3 flex items-center justify-center aspect-square rounded-3xl w-14 h-14">
+            <Icon path={mdiRobot} size={2} color="#4F46E5" />
           </div>
         </div>
 
