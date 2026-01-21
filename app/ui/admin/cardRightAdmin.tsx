@@ -5,7 +5,7 @@ import {
   mdiPackageVariantClosed,
   mdiCheckboxMarkedOutline,
   mdiSort,
-  mdiRobot,
+  mdiCog,
 } from "@mdi/js";
 import LineChart from "@/app/ui/admin/chart";
 import { getData } from "@/app/utils/fetchData";
@@ -85,7 +85,7 @@ export default async function CardTopAdmin() {
             </h2>
           </div>
           <div className="bg-[#B9C5FF] p-3 flex items-center justify-center aspect-square rounded-3xl w-14 h-14">
-            <Icon path={mdiRobot} size={2} color="#4F46E5" />
+            <Icon path={mdiCog} size={2} color="#4F46E5" />
           </div>
         </div>
 

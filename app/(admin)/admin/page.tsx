@@ -4,6 +4,8 @@ import {
   SkeletonCardRightAdmin,
 } from "@/app/ui/admin/skeleton/dashboard";
 
+export const dynamic = "force-dynamic";
+
 const LazyCardTopAdmin = lazy(() => import("@/app/ui/admin/cardTopAdmin"));
 const LazyCardRightAdmin = lazy(() => import("@/app/ui/admin/cardRightAdmin"));
 import RealtimeDashboardListener from "@/app/ui/admin/RealtimeDashboardListener";
