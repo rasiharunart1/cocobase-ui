@@ -48,6 +48,8 @@ export interface Produk {
   deskripsi: string;
   harga: number;
   jumlah: number;
+  terjual?: number;
+  unit?: "KG" | "POUCH";
 }
 
 export interface ProdukSelect {
