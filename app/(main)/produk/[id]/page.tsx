@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { getData } from "@/app/utils/fetchData";
 import { Produk } from "@/app/utils/interface";
 import { Skeleton } from "@/app/ui/admin/skeleton/card";
-import { Footer, Chat } from "@/app/(main)/page";
+import { Footer, Chat } from "@/app/(main)/HomeView";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>("");

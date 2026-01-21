@@ -332,7 +332,7 @@ const Cocoblog = ({
     );
 };
 
-const Footer = () => {
+export const Footer = () => {
     return (
         <footer id="footer" className="py-4 bg-gray-800 text-white text-center">
             <p>&copy; {new Date().getFullYear()} Cocobase. Semua hak dilindungi.</p>
