@@ -46,6 +46,7 @@ export interface Produk {
   gambar: string;
   link: string;
   deskripsi: string;
+  harga: number;
   jumlah: number;
 }
 
