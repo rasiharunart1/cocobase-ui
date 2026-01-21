@@ -8,7 +8,7 @@ import { mdiMinus, mdiPlus, mdiChatProcessing, mdiCartPlus } from "@mdi/js";
 import { toast } from "react-toastify";
 import { getData } from "@/app/utils/fetchData";
 import { Produk } from "@/app/utils/interface";
-import { Skeleton } from "@/app/ui/admin/skeleton/card";
+import { SkeletonCard } from "@/app/ui/admin/skeleton/card";
 import { Footer, Chat } from "@/app/(main)/HomeView";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +43,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         else if (type === "dec" && quantity > 1) setQuantity(q => q - 1);
     };
 
-    if (loading) return <div className="p-10"><Skeleton /></div>;
+    if (loading) return <div className="p-10"><SkeletonCard /></div>;
     if (!product) return <div className="p-10 text-center">Produk tidak ditemukan</div>;
 
     const waLink = `https://api.whatsapp.com/send?phone=${nomorTujuan}&text=Halo%20Admin%20Cocobase!%20Saya%20tertarik%20membeli%20produk%20ini%3A%0A%0A*Nama%20Produk%3A*%20${product.nama}%0A*Harga%3A*%20Rp%20${product.harga?.toLocaleString("id-ID")}%0A*Jumlah%3A*%20${quantity}%0A*Total%3A*%20Rp%20${(product.harga * quantity).toLocaleString("id-ID")}%0A%0AMohon%20informasi%20stok%20dan%20cara%20pemesanannya.%20Terima%20kasih!`;
