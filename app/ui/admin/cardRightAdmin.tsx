@@ -13,7 +13,8 @@ import { getData } from "@/app/utils/fetchData";
 export default async function CardTopAdmin() {
   const data = await getData({ path: "/dashboard/atas" });
 
-  const keterangan = data?.kanan;
+  const keterangan = data?.kanan || [];
+
 
   return (
     <div className="grid grid-cols-4 gap-5 mt-5">
