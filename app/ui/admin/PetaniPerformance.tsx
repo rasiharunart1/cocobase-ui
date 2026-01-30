@@ -1,10 +1,9 @@
-```
 import Icon from "@mdi/react";
-import { 
-    mdiTrophy, 
-    mdiAccountGroup, 
-    mdiWeightKilogram, 
-    mdiPackageVariantClosed, 
+import {
+    mdiTrophy,
+    mdiAccountGroup,
+    mdiWeightKilogram,
+    mdiPackageVariantClosed,
     mdiSort,
     mdiAccessPoint,
     mdiClockOutline,
@@ -63,11 +62,10 @@ export default async function PetaniPerformance() {
                 {topFarmers.slice(0, 3).map((farmer: any, index: number) => (
                     <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="relative z-10 flex items-center gap-4">
-                            <div className={`w - 12 h - 12 rounded - full flex items - center justify - center font - black text - lg ${
-    index === 0 ? "bg-yellow-400 text-white shadow-lg shadow-yellow-200" :
-        index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
-            "bg-orange-300 text-white shadow-lg shadow-orange-100"
-} `}>
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${index === 0 ? "bg-yellow-400 text-white shadow-lg shadow-yellow-200" :
+                                    index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
+                                        "bg-orange-300 text-white shadow-lg shadow-orange-100"
+                                }`}>
                                 {farmer.rank}
                             </div>
                             <div>
@@ -122,7 +120,7 @@ export default async function PetaniPerformance() {
                                                 {p.id === 0 && <Icon path={mdiAlertCircle} size={0.6} className="text-amber-500" />}
                                                 <div>
                                                     <p className={clsx("font-bold text-sm", p.id === 0 ? "text-amber-700 italic" : "text-gray-800")}>{p.nama}</p>
-                                                    <p className="text-[9px] text-gray-400 uppercase font-medium">{p.id === 0 ? "Data Tanpa Sesi Aktif" : `Mitra Id: #${ p.id } `}</p>
+                                                    <p className="text-[9px] text-gray-400 uppercase font-medium">{p.id === 0 ? "Data Tanpa Sesi Aktif" : `Mitra Id: #${p.id}`}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -166,7 +164,7 @@ export default async function PetaniPerformance() {
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-center">
                     <Link href="/admin/petani" className="text-[10px] font-black text-[#00B69B] uppercase tracking-widest hover:underline flex items-center gap-2">
                         Kelola Seluruh Hubungan Petani
@@ -197,7 +195,7 @@ function StageBadge({ name, count, color }: { name: string, count: number, color
         <div className={clsx(
             "w-8 h-8 rounded-lg border flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-110 cursor-help",
             colors[color]
-        )} title={`${ name }: ${ count } item`}>
+        )} title={`${name}: ${count} item`}>
             <span className="text-[9px] font-black">{count}</span>
             <span className="text-[6px] font-bold uppercase tracking-tighter opacity-70 leading-none">{name.slice(0, 3)}</span>
         </div>
