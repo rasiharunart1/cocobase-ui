@@ -2,8 +2,7 @@ import PetaniNavLinks from "@/app/ui/petani/nav-links";
 import Logo from "../../../public/cblogo.png";
 import Image from "next/image";
 import Link from "next/link";
-import Icon from "@mdi/react";
-import { mdiLogout } from "@mdi/js";
+import LogoutButton from "@/app/ui/petani/logout-button";
 
 export default function PetaniSideNav() {
     return (
@@ -15,18 +14,7 @@ export default function PetaniSideNav() {
                 <PetaniNavLinks />
                 <div className="hidden h-auto w-full grow rounded-md bg-white md:block"></div>
 
-                {/* Sign Out Button for Farmer */}
-                <button
-                    onClick={() => {
-                        document.cookie = "petani_token=; path=/; max-age=0";
-                        localStorage.removeItem("petani_user");
-                        window.location.href = "/petani/login";
-                    }}
-                    className="flex h-[48px] md:w-[95%] grow items-center justify-center gap-2 rounded-md bg-white p-3 text-sm font-medium text-red-600 hover:bg-red-50 md:flex-none md:justify-start md:p-2 md:px-3 transition-colors mb-4"
-                >
-                    <Icon path={mdiLogout} size={1.2} className="w-6" />
-                    <p className="hidden md:block">Keluar</p>
-                </button>
+                <LogoutButton />
             </div>
         </div>
     );
