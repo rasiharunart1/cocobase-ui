@@ -1,7 +1,8 @@
 import Icon from "@mdi/react";
-import { mdiTrophy, mdiAccountGroup, mdiWeightKilogram, mdiPackageVariantClosed } from "@mdi/js";
+import { mdiTrophy, mdiAccountGroup, mdiWeightKilogram, mdiPackageVariantClosed, mdiSort } from "@mdi/js";
 import { getData } from "@/app/utils/fetchData";
 import Link from "next/link";
+import clsx from "clsx";
 
 export default async function PetaniPerformance() {
     const data = await getData({ path: "/dashboard/atas" });
@@ -16,8 +17,8 @@ export default async function PetaniPerformance() {
                     <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="relative z-10 flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${index === 0 ? "bg-yellow-400 text-white shadow-lg shadow-yellow-200" :
-                                    index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
-                                        "bg-orange-300 text-white shadow-lg shadow-orange-100"
+                                index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
+                                    "bg-orange-300 text-white shadow-lg shadow-orange-100"
                                 }`}>
                                 {farmer.rank}
                             </div>
