@@ -1,5 +1,15 @@
+```
 import Icon from "@mdi/react";
-import { mdiTrophy, mdiAccountGroup, mdiWeightKilogram, mdiPackageVariantClosed, mdiSort } from "@mdi/js";
+import { 
+    mdiTrophy, 
+    mdiAccountGroup, 
+    mdiWeightKilogram, 
+    mdiPackageVariantClosed, 
+    mdiSort,
+    mdiAccessPoint,
+    mdiClockOutline,
+    mdiAlertCircle
+} from "@mdi/js";
 import { getData } from "@/app/utils/fetchData";
 import Link from "next/link";
 import clsx from "clsx";
@@ -8,18 +18,56 @@ export default async function PetaniPerformance() {
     const data = await getData({ path: "/dashboard/atas" });
     const performance = data?.petaniPerformance || [];
     const topFarmers = data?.topFarmers || [];
+    const recentActivities = data?.recentActivities || [];
 
     return (
         <div className="flex flex-col gap-8 mt-12">
+            {/* Recent IoT Activity Feed */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-2">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest italic flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></div>
+                        Live IoT Activities
+                    </h3>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                        Last 5 Transmissions
+                    </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {recentActivities.map((act: any, i: number) => (
+                        <div key={i} className="flex flex-col p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-blue-200 transition-colors">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[8px] font-black text-gray-400 uppercase">{new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <Icon path={mdiAccessPoint} size={0.4} />
+                                </div>
+                            </div>
+                            <p className="text-[10px] font-black text-gray-800 truncate">{act.petani?.nama || "Unknown Farmer"}</p>
+                            <p className="text-[9px] text-[#00B69B] font-bold mt-1">{act.weight.toFixed(2)} kg</p>
+                            {!act.petani && (
+                                <div className="mt-1 flex items-center gap-1 text-[8px] text-amber-600 font-black uppercase italic">
+                                    <Icon path={mdiAlertCircle} size={0.3} />
+                                    No Session
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {recentActivities.length === 0 && (
+                        <div className="col-span-5 text-center py-4 text-gray-400 italic text-xs">Waiting for device signals...</div>
+                    )}
+                </div>
+            </div>
+
             {/* Row 1: Top 3 IoT Leaderboard (Medals) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {topFarmers.slice(0, 3).map((farmer: any, index: number) => (
                     <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="relative z-10 flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${index === 0 ? "bg-yellow-400 text-white shadow-lg shadow-yellow-200" :
-                                index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
-                                    "bg-orange-300 text-white shadow-lg shadow-orange-100"
-                                }`}>
+                            <div className={`w - 12 h - 12 rounded - full flex items - center justify - center font - black text - lg ${
+    index === 0 ? "bg-yellow-400 text-white shadow-lg shadow-yellow-200" :
+        index === 1 ? "bg-gray-300 text-white shadow-lg shadow-gray-100" :
+            "bg-orange-300 text-white shadow-lg shadow-orange-100"
+} `}>
                                 {farmer.rank}
                             </div>
                             <div>
@@ -68,22 +116,29 @@ export default async function PetaniPerformance() {
                         <tbody className="divide-y divide-gray-50">
                             {performance.length > 0 ? (
                                 performance.map((p: any, index: number) => (
-                                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={index} className={clsx("hover:bg-gray-50 transition-colors", p.id === 0 && "bg-amber-50/30")}>
                                         <td className="px-6 py-4">
-                                            <p className="font-bold text-gray-800 text-sm">{p.nama}</p>
-                                            <p className="text-[9px] text-gray-400 uppercase font-medium">Mitra Id: #{p.id}</p>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-sm font-black text-[#00B69B]">{p.iotWeight.toFixed(1)}</span>
-                                                <div className="flex items-center gap-0.5 mt-0.5">
-                                                    <span className="w-1 h-1 rounded-full bg-blue-400 animate-pulse"></span>
-                                                    <span className="text-[8px] text-blue-400 font-bold uppercase italic">IoT Verified</span>
+                                            <div className="flex items-center gap-2">
+                                                {p.id === 0 && <Icon path={mdiAlertCircle} size={0.6} className="text-amber-500" />}
+                                                <div>
+                                                    <p className={clsx("font-bold text-sm", p.id === 0 ? "text-amber-700 italic" : "text-gray-800")}>{p.nama}</p>
+                                                    <p className="text-[9px] text-gray-400 uppercase font-medium">{p.id === 0 ? "Data Tanpa Sesi Aktif" : `Mitra Id: #${ p.id } `}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="text-sm font-bold text-blue-600">{p.iotPackCount}</span>
+                                            <div className="flex flex-col items-center">
+                                                <span className={clsx("text-sm font-black", p.id === 0 ? "text-amber-600" : "text-[#00B69B]")}>{p.iotWeight.toFixed(1)}</span>
+                                                <div className="flex items-center gap-0.5 mt-0.5">
+                                                    <span className={clsx("w-1 h-1 rounded-full animate-pulse", p.id === 0 ? "bg-amber-400" : "bg-blue-400")}></span>
+                                                    <span className={clsx("text-[8px] font-bold uppercase italic", p.id === 0 ? "text-amber-400" : "text-blue-400")}>
+                                                        {p.id === 0 ? "Needs Assign" : "IoT Verified"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={clsx("text-sm font-bold", p.id === 0 ? "text-amber-600" : "text-blue-600")}>{p.iotPackCount}</span>
                                             <p className="text-[8px] text-gray-400 uppercase italic">Packs</p>
                                         </td>
                                         <td className="px-6 py-4">
@@ -111,7 +166,7 @@ export default async function PetaniPerformance() {
                         </tbody>
                     </table>
                 </div>
-
+                
                 <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-center">
                     <Link href="/admin/petani" className="text-[10px] font-black text-[#00B69B] uppercase tracking-widest hover:underline flex items-center gap-2">
                         Kelola Seluruh Hubungan Petani
@@ -142,7 +197,7 @@ function StageBadge({ name, count, color }: { name: string, count: number, color
         <div className={clsx(
             "w-8 h-8 rounded-lg border flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-110 cursor-help",
             colors[color]
-        )} title={`${name}: ${count} item`}>
+        )} title={`${ name }: ${ count } item`}>
             <span className="text-[9px] font-black">{count}</span>
             <span className="text-[6px] font-bold uppercase tracking-tighter opacity-70 leading-none">{name.slice(0, 3)}</span>
         </div>
