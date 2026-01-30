@@ -44,9 +44,12 @@ export default async function CardRightAdmin() {
           </div>
           <div className="flex items-center gap-4 border-l pl-4 border-gray-100">
             <div className="text-right">
-              <p className="text-[9px] text-gray-400 uppercase font-bold italic">Volume Total</p>
-              <div className="flex items-center gap-1 text-gray-800">
-                <span className="font-black text-xl">{weightStats.totalWeight.toFixed(1)}</span>
+              <p className="text-[9px] text-[#00B69B] uppercase font-black italic flex items-center justify-end gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00B69B] animate-pulse"></span>
+                Volume Terverifikasi IoT
+              </p>
+              <div className="flex items-center gap-1 text-gray-800 justify-end">
+                <span className="font-black text-2xl">{weightStats.totalWeight.toFixed(1)}</span>
                 <span className="text-xs font-medium text-gray-400">kg</span>
               </div>
             </div>
