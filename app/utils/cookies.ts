@@ -3,15 +3,16 @@
 import { cookies } from "next/headers";
 
 export async function setCookiesToken(token: string) {
+  console.log("[DEBUG] Setting cookie token:", token ? "Token present" : "Token empty");
   try {
     (await cookies()).set({
       name: "token",
       value: token,
       httpOnly: true,
-      secure: true,
-      // path: "/auth/login",
+      secure: process.env.NODE_ENV === 'production',
+      path: "/",
       maxAge: 86400,
-      sameSite: "strict",
+      sameSite: "lax",
     });
 
   } catch (error) {
@@ -22,7 +23,7 @@ export async function setCookiesToken(token: string) {
 export async function getCookiesToken() {
   try {
     const token = (await cookies()).get("token");
-    console.log(token, "get token");
+    console.log("[DEBUG] getCookiesToken result:", token ? "Found" : "Missing");
     return token;
   } catch (error) {
     console.log("Get cookies", error);
