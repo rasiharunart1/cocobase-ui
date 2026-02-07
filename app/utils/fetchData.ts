@@ -55,18 +55,16 @@ export async function getDataNoQuery({
   path: string;
 }) {
   const token = (await cookies()).get("token");
+  const url = `${process.env.NEXT_PUBLIC_API_URL}${path}?limit=100`;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${path}?limit=100`,
-      {
-        cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${token?.value}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token?.value}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!res.ok) {
       console.error(`Fetch error: ${res.status} ${res.statusText} for ${url}`);
@@ -77,4 +75,6 @@ export async function getDataNoQuery({
     return data.data;
   } catch (error) {
     console.error("fetchDataNoQuery error:", error);
+    return null;
   }
+}
