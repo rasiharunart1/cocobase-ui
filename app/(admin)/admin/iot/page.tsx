@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getData } from "@/app/utils/fetchData";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh, mdiCounter, mdiScaleBalance, mdiCheckDecagram, mdiAccountPlus, mdiWrench } from "@mdi/js";
+import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh, mdiCounter, mdiScaleBalance, mdiCheckDecagram, mdiAccountPlus, mdiWrench, mdiPlay, mdiStop } from "@mdi/js";
 
 export default function IoTDashboard() {
     const [weight, setWeight] = useState<number>(0);
@@ -48,7 +48,7 @@ export default function IoTDashboard() {
                     }
                 }
             } catch (error) {
-                console.error("Failed to fetch weight", error);
+                console.error("Gagal mengambil data berat", error);
             }
         }, 2000);
 
@@ -64,7 +64,7 @@ export default function IoTDashboard() {
                 setPetanis(data.petani);
             }
         } catch (error) {
-            console.error("Failed to fetch petanis");
+            console.error("Gagal mengambil data petani");
         }
     };
 
@@ -81,7 +81,7 @@ export default function IoTDashboard() {
                 setLoading(false);
             }
         } catch (error) {
-            toast.error("Failed to fetch devices");
+            toast.error("Gagal mengambil data perangkat");
             setLoading(false);
         }
     };
@@ -95,7 +95,7 @@ export default function IoTDashboard() {
             }
             setLoading(false);
         } catch (error) {
-            console.error("Failed to fetch logs", error);
+            console.error("Gagal mengambil log", error);
             setLoading(false);
         }
     };
@@ -115,10 +115,10 @@ export default function IoTDashboard() {
             if (data.success) {
                 setThreshold(data.data.threshold);
                 setRelayThreshold(data.data.relayThreshold);
-                toast.success("Thresholds updated!");
+                toast.success("Pengaturan tersimpan!");
             }
         } catch (error) {
-            toast.error("Update failed");
+            toast.error("Gagal menyimpan");
         }
     };
 
@@ -132,37 +132,37 @@ export default function IoTDashboard() {
             });
             const data = await res.json();
             if (data.success) {
-                toast.success("Log verified and assigned!");
+                toast.success("Berhasil diverifikasi!");
                 fetchLogs(selectedDevice.id);
             } else {
-                toast.error(data.message || "Verification failed");
+                toast.error(data.message || "Gagal verifikasi");
             }
         } catch (error) {
-            toast.error("Network error during verification");
+            toast.error("Eror jaringan saat verifikasi");
         }
     };
 
     const handleDeleteLog = async (logId: number) => {
-        if (!confirm("Are you sure you want to delete this log?")) return;
+        if (!confirm("Yakin ingin menghapus log ini?")) return;
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/${logId}`, {
                 method: "DELETE",
             });
             const data = await res.json();
             if (data.success) {
-                toast.success("Log deleted");
+                toast.success("Log dihapus");
                 fetchLogs(selectedDevice.id);
             } else {
-                toast.error(data.message || "Failed to delete log");
+                toast.error(data.message || "Gagal menghapus log");
             }
         } catch (error) {
-            toast.error("Failed to delete log");
+            toast.error("Gagal menghapus log");
         }
     };
 
     const handleResetLogs = async () => {
         if (!selectedDevice) return;
-        const confirmReset = prompt(`Type "RESET" to confirm deleting ALL logs for ${selectedDevice.name}?`);
+        const confirmReset = prompt(`Ketik "RESET" untuk konfirmasi menghapus SEMUA log dari ${selectedDevice.name}?`);
         if (confirmReset !== "RESET") return;
 
         try {
@@ -171,60 +171,37 @@ export default function IoTDashboard() {
             });
             const data = await res.json();
             if (data.success) {
-                toast.success("All logs reset successfully");
+                toast.success("Semua log berhasil direset");
                 fetchLogs(selectedDevice.id);
             } else {
-                toast.error(data.message || "Failed to reset logs");
+                toast.error(data.message || "Gagal mereset log");
             }
         } catch (error) {
-            toast.error("Failed to reset logs");
+            toast.error("Gagal mereset log");
         }
     };
 
-    const handleCalibrationCommand = async (type: "TARE" | "CALIBRATE", value?: number) => {
+    const handleCommand = async (type: "TARE" | "CALIBRATE" | "START_RELAY" | "STOP_RELAY", value?: number) => {
         if (!selectedDevice) return;
 
         try {
             const payload: any = { type };
             if (type === "CALIBRATE") {
                 if (!value || value <= 0) {
-                    toast.error("Please enter a valid weight");
+                    toast.error("Masukkan berat yang valid");
                     return;
                 }
-                // Calculate new factor based on current reading
-                // Formula: newFactor = (rawWeight / knownWeight) * currentFactor
-                // BUT: Since we don't have rawWeight handy, we rely on the device to do the math?
-                // Actually my firmware logic for "CALIBRATE" expects a VALUE = NEW FACTOR.
-                // Uh oh, the firmware I wrote expects "value" to be the NEW FACTOR.
-                // "float newFactor = cmd["value"];"
-
-                // So the Frontend needs to calculate the new factor?
-                // Or the Firmware should be smarter?
-                // The README said: "Gunakan rumus: FaktorBaru = (BeratTerbaca / BeratAsli) * FaktorLama"
-                // Ideally the frontend does this math.
-
-                // Get current factor (we need to fetch it from device details?)
-                // The device object has 'calibrationFactor' in DB? Yes I added it.
-                // But selectedDevice might be stale.
-
-                // Let's assume we do the math here if we have 'weight' (current reading)
-                // NewFactor = (CurrentWeight / KnownWeight) * CurrentFactor
-
-                // We need the CurrentFactor. selectedDevice.calibrationFactor might be old if updated elsewhere.
-                // But let's use selectedDevice.calibrationFactor.
 
                 const currentFactor = selectedDevice.calibrationFactor || 2280.0;
-                const reading = weight; // Current weight from state
+                const reading = weight;
 
                 if (reading === 0) {
-                    toast.error("Cannot calibrate if reading is 0. Please place weight first.");
+                    toast.error("Letakkan beban sebelum kalibrasi!");
                     return;
                 }
 
                 const newFactor = (reading / value) * currentFactor;
                 payload.value = newFactor;
-
-                console.log(`Calibrating: Reading=${reading}, Known=${value}, OldFactor=${currentFactor} -> NewFactor=${newFactor}`);
             }
 
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/commands/${selectedDevice.id}`, {
@@ -235,10 +212,8 @@ export default function IoTDashboard() {
 
             const data = await res.json();
             if (data.success) {
-                toast.success(`Command ${type} sent! Wait 1-2s...`);
+                toast.success(`Perintah ${type} terkirim!`);
                 if (type === "CALIBRATE") {
-                    // Update local device state to reflect new factor
-                    // Ideally re-fetch device
                     fetchDevices();
                     setIsCalModalOpen(false);
                 }
@@ -246,7 +221,7 @@ export default function IoTDashboard() {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error("Failed to send command");
+            toast.error("Gagal mengirim perintah");
         }
     };
 
@@ -254,8 +229,8 @@ export default function IoTDashboard() {
         return (
             <div className="p-6 text-center">
                 <Icon path={mdiDevices} size={3} className="mx-auto text-gray-300 mb-4" />
-                <h2 className="text-xl font-bold text-gray-600">No Devices Found</h2>
-                <p className="text-gray-500">Please add a device in "Management Alat" first.</p>
+                <h2 className="text-xl font-bold text-gray-600">Tidak Ada Perangkat</h2>
+                <p className="text-gray-500">Silakan tambahkan perangkat di "Manajemen Alat" terlebih dahulu.</p>
             </div>
         );
     }
@@ -264,8 +239,8 @@ export default function IoTDashboard() {
         <div className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold">IoT Monitoring</h1>
-                    <p className="text-sm text-gray-500">Real-time data from your packing machines</p>
+                    <h1 className="text-2xl font-bold">Monitoring IoT</h1>
+                    <p className="text-sm text-gray-500">Data realtime dari mesin packing Anda</p>
                 </div>
 
                 <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border">
@@ -282,19 +257,17 @@ export default function IoTDashboard() {
                 </div>
             </div>
 
-            {/* Session Management Panel Removed - Auto-logging enabled */}
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Summary: Total Records */}
                 <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center border-t-4 border-[#8B5CF6] relative overflow-hidden">
                     <div className="absolute top-4 left-4 text-gray-200">
                         <Icon path={mdiCounter} size={2} />
                     </div>
-                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Records</span>
+                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Data</span>
                     <div className="text-5xl font-black text-[#202224]">
                         {logs.length}
                     </div>
-                    <span className="text-sm text-gray-400 mt-2">Packing Logs</span>
+                    <span className="text-sm text-gray-400 mt-2">Log Packing</span>
                 </div>
 
                 {/* Summary: Total Weight */}
@@ -302,12 +275,12 @@ export default function IoTDashboard() {
                     <div className="absolute top-4 left-4 text-gray-200">
                         <Icon path={mdiScaleBalance} size={2} />
                     </div>
-                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Weight</span>
+                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Total Berat</span>
                     <div className="text-5xl font-black text-[#202224]">
                         {logs.reduce((sum, log) => sum + log.weight, 0).toFixed(1)}
                         <span className="text-xl text-gray-300 font-light"> kg</span>
                     </div>
-                    <span className="text-sm text-gray-400 mt-2">Combined Output</span>
+                    <span className="text-sm text-gray-400 mt-2">Akumulasi Output</span>
                 </div>
 
                 {/* Real-time Weight Display */}
@@ -315,14 +288,14 @@ export default function IoTDashboard() {
                     <div className="absolute top-4 left-4 text-gray-300">
                         <Icon path={mdiWeightKilogram} size={2} />
                     </div>
-                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Current Weight</span>
+                    <span className="text-gray-500 uppercase text-xs font-bold mb-2 tracking-wider">Berat Saat Ini</span>
                     <div className="text-7xl font-black text-[#202224] transition-all duration-300">
                         {weight.toFixed(2)} <span className="text-2xl text-gray-300 font-light">kg</span>
                     </div>
                     <div className="mt-6 flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
                         <div className={`h-3 w-3 rounded-full ${weight >= threshold ? 'bg-red-500 animate-pulse' : 'bg-[#00B69B]'}`}></div>
                         <span className="text-sm font-semibold text-gray-600">
-                            {weight >= threshold ? 'PACKING COMPLETED' : 'MONITORING...'}
+                            {weight >= threshold ? 'PACKING SELESAI' : 'MEMANTAU...'}
                         </span>
                     </div>
                 </div>
@@ -331,12 +304,12 @@ export default function IoTDashboard() {
                 <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#E37D2E] md:col-span-3">
                     <div className="flex items-center gap-2 mb-6">
                         <Icon path={mdiCog} size={0.9} className="text-[#E37D2E]" />
-                        <h2 className="text-lg font-bold text-gray-800">Device Settings</h2>
+                        <h2 className="text-lg font-bold text-gray-800">Pengaturan Perangkat</h2>
                     </div>
                     <div className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Auto-Log Threshold</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Batas Auto-Log (Min)</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -350,7 +323,7 @@ export default function IoTDashboard() {
                                 <p className="text-xs text-gray-500 mt-1">Log otomatis dibuat saat mencapai berat ini</p>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Relay Threshold (Max Weight)</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Batas Relay (Maks)</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -364,17 +337,40 @@ export default function IoTDashboard() {
                                 <p className="text-xs text-gray-500 mt-1">ESP32 mematikan relay saat mencapai berat ini</p>
                             </div>
                         </div>
-                        <button
-                            onClick={updateThresholds}
-                            className="bg-[#E37D2E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#c47438] transition shadow-lg shadow-orange-100"
-                        >
-                            SAVE THRESHOLDS
-                        </button>
+
+                        {/* Control Buttons */}
+                        <div className="flex flex-col md:flex-row gap-4 mt-4">
+                            <button
+                                onClick={updateThresholds}
+                                className="flex-1 bg-[#E37D2E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#c47438] transition shadow-lg shadow-orange-100"
+                            >
+                                SIMPAN PENGATURAN
+                            </button>
+
+                            <div className="flex gap-2 flex-1">
+                                <button
+                                    onClick={() => handleCommand("START_RELAY")}
+                                    className="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-600 transition shadow-lg shadow-green-100 flex items-center justify-center gap-2"
+                                >
+                                    <Icon path={mdiPlay} size={1} />
+                                    MULAI ISI
+                                </button>
+                                <button
+                                    onClick={() => handleCommand("STOP_RELAY")}
+                                    className="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-red-600 transition shadow-lg shadow-red-100 flex items-center justify-center gap-2"
+                                >
+                                    <Icon path={mdiStop} size={1} />
+                                    STOP
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
                             <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                                💡 <strong>Auto-Log:</strong> Log dibuat otomatis saat mencapai threshold pertama. <strong>Relay:</strong> ESP32 mematikan relay saat mencapai threshold kedua untuk mencegah overfill.
+                                💡 <strong>Auto-Log:</strong> Log dibuat otomatis saat mencapai batas minimal. <strong>Relay:</strong> Relay mati otomatis saat mencapai batas maksimal.
                             </p>
                         </div>
+
                         {/* Calibration Button */}
                         <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
                             <button
@@ -382,7 +378,7 @@ export default function IoTDashboard() {
                                 className="flex items-center gap-2 text-gray-500 hover:text-blue-600 font-bold text-sm transition-colors border border-gray-200 px-4 py-2 rounded-lg hover:border-blue-300 bg-gray-50 hover:bg-blue-50"
                             >
                                 <Icon path={mdiWrench} size={0.8} />
-                                Calibration Mode
+                                Mode Kalibrasi (Remote)
                             </button>
                         </div>
                     </div>
@@ -394,7 +390,7 @@ export default function IoTDashboard() {
                 <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                     <div className="flex items-center gap-2">
                         <Icon path={mdiHistory} size={1} className="text-[#00B69B]" />
-                        <h2 className="text-lg font-bold">Packing History</h2>
+                        <h2 className="text-lg font-bold">Riwayat Packing</h2>
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -402,14 +398,14 @@ export default function IoTDashboard() {
                             className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
                         >
                             <Icon path={mdiTrashCan} size={0.7} />
-                            RESET ALL
+                            RESET SEMUA
                         </button>
                         <button
                             onClick={() => selectedDevice && fetchLogs(selectedDevice.id)}
                             className="text-[#00B69B] text-sm font-bold hover:text-[#00947d] flex items-center gap-1"
                         >
                             <Icon path={mdiRefresh} size={0.8} />
-                            REFRESH
+                            UPDATE
                         </button>
                     </div>
                 </div>
@@ -417,25 +413,25 @@ export default function IoTDashboard() {
                     <table className="w-full text-left">
                         <thead className="bg-white text-[10px] uppercase text-gray-400 font-black tracking-widest">
                             <tr>
-                                <th className="px-6 py-4">Timestamp</th>
-                                <th className="px-6 py-4">Weight</th>
-                                <th className="px-6 py-4">Farmer</th>
+                                <th className="px-6 py-4">Waktu</th>
+                                <th className="px-6 py-4">Berat</th>
+                                <th className="px-6 py-4">Petani</th>
                                 <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-center">Action</th>
+                                <th className="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 text-sm">
                             {logs.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/20">
-                                        {loading ? "Synchronizing logs..." : `No packing history found for ${selectedDevice?.name}`}
+                                        {loading ? "Sinkronisasi log..." : `Tidak ada riwayat packing untuk ${selectedDevice?.name}`}
                                     </td>
                                 </tr>
                             ) : (
                                 logs.map((log) => (
                                     <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-6 py-4 text-gray-500 font-medium">
-                                            {new Date(log.createdAt).toLocaleString()}
+                                            {new Date(log.createdAt).toLocaleString("id-ID")}
                                         </td>
                                         <td className="px-6 py-4 font-bold text-gray-800 tracking-tight">
                                             {log.weight.toFixed(2)} kg
@@ -449,11 +445,11 @@ export default function IoTDashboard() {
                                                     {log.petani.nama}
                                                 </span>
                                             ) : (
-                                                <span className="text-gray-400 italic">No Farmer</span>
+                                                <span className="text-gray-400 italic">Belum Dipilih</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-xs">
-                                            <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full font-bold border border-green-100 uppercase tracking-tighter">Success</span>
+                                            <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full font-bold border border-green-100 uppercase tracking-tighter">Sukses</span>
                                         </td>
                                         <td className="px-6 py-4 flex items-center justify-center gap-2">
                                             <div className="flex items-center gap-1">
@@ -462,7 +458,7 @@ export default function IoTDashboard() {
                                                     className="text-[10px] border border-blue-200 rounded px-1 py-1 bg-blue-50 text-blue-700 outline-none font-bold uppercase transition-all hover:bg-blue-100"
                                                     value={log.petani?.id || ""}
                                                 >
-                                                    <option value="">{log.petani ? "Change Farmer..." : "Assign Farmer..."}</option>
+                                                    <option value="">{log.petani ? "Ganti Petani..." : "Pilih Petani..."}</option>
                                                     {petanis.map(p => (
                                                         <option key={p.id} value={p.id}>{p.nama}</option>
                                                     ))}
@@ -471,7 +467,7 @@ export default function IoTDashboard() {
                                             <button
                                                 onClick={() => handleDeleteLog(log.id)}
                                                 className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                                                title="Delete Log"
+                                                title="Hapus Log"
                                             >
                                                 <Icon path={mdiTrashCan} size={0.7} />
                                             </button>
@@ -491,21 +487,21 @@ export default function IoTDashboard() {
                             <div>
                                 <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
                                     <Icon path={mdiWrench} className="text-[#00B69B]" size={1.2} />
-                                    Calibration
+                                    Kalibrasi Remote
                                 </h2>
-                                <p className="text-sm text-gray-400 font-medium">Remote control for {selectedDevice.name}</p>
+                                <p className="text-sm text-gray-400 font-medium">Kontrol jarak jauh untuk {selectedDevice.name}</p>
                             </div>
                             <button onClick={() => setIsCalModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
                         </div>
 
                         <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Live Reading</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Berat Terbaca (Live)</span>
                             <div className="text-5xl font-black text-[#202224] flex items-baseline gap-2">
                                 {weight.toFixed(2)}
                                 <span className="text-lg text-gray-400 font-bold">kg</span>
                             </div>
                             <span className="text-xs text-[#00B69B] bg-[#00B69B]/10 px-2 py-1 rounded-md mt-2 font-bold animate-pulse">
-                                Live from Device
+                                Live dari Alat
                             </span>
                         </div>
 
@@ -513,37 +509,37 @@ export default function IoTDashboard() {
                             {/* Step 1: Tare */}
                             <div className="flex items-center justify-between gap-4 p-4 border border-gray-100 rounded-xl hover:border-blue-200 transition-colors group">
                                 <div>
-                                    <h3 className="font-bold text-gray-700">1. Zero Scale (Tare)</h3>
-                                    <p className="text-xs text-gray-400">Empty the scale before clicking</p>
+                                    <h3 className="font-bold text-gray-700">1. Nol-kan Timbangan (Tare)</h3>
+                                    <p className="text-xs text-gray-400">Pastikan timbangan kosong</p>
                                 </div>
                                 <button
-                                    onClick={() => handleCalibrationCommand("TARE")}
+                                    onClick={() => handleCommand("TARE")}
                                     className="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-900 shadow-lg shadow-gray-200"
                                 >
-                                    TARE NOW
+                                    TARE SEKARANG
                                 </button>
                             </div>
 
                             {/* Step 2: Calibrate */}
                             <div className="p-4 border border-gray-100 rounded-xl hover:border-blue-200 transition-colors">
-                                <h3 className="font-bold text-gray-700 mb-2">2. Calibrate Factor</h3>
-                                <p className="text-xs text-gray-400 mb-4">Place a known weight (e.g., 1kg) and enter value below.</p>
+                                <h3 className="font-bold text-gray-700 mb-2">2. Kalibrasi Faktor</h3>
+                                <p className="text-xs text-gray-400 mb-4">Letakkan beban diketahui (misal 1kg) lalu masukkan nilainya.</p>
 
                                 <div className="flex gap-2">
                                     <div className="relative flex-grow">
                                         <input
                                             type="number"
-                                            placeholder="Known Weight..."
+                                            placeholder="Berat Asli..."
                                             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#00B69B] outline-none font-bold"
                                             onChange={(e) => setCalKnownWeight(parseFloat(e.target.value))}
                                         />
                                         <span className="absolute right-4 top-2.5 text-gray-400 text-xs font-bold">KG</span>
                                     </div>
                                     <button
-                                        onClick={() => handleCalibrationCommand("CALIBRATE", calKnownWeight)}
+                                        onClick={() => handleCommand("CALIBRATE", calKnownWeight)}
                                         className="bg-[#00B69B] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#00947d] shadow-lg shadow-teal-100"
                                     >
-                                        CALIBRATE
+                                        KALIBRASI
                                     </button>
                                 </div>
                             </div>
@@ -551,7 +547,7 @@ export default function IoTDashboard() {
 
                         <div className="mt-6 text-center">
                             <p className="text-[10px] text-gray-400 bg-yellow-50 p-2 rounded border border-yellow-100">
-                                ⚠️ Commands may take 1-2 seconds to process due to polling interval.
+                                ⚠️ Perintah mungkin butuh 1-2 detik untuk diproses alat.
                             </p>
                         </div>
                     </div>
