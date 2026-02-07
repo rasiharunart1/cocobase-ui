@@ -132,7 +132,7 @@ export default async function CardTopAdmin() {
             <div>
               <p className="text-[#83450F] text-sm font-bold uppercase tracking-tighter">Efisiensi</p>
               <h2 className="text-3xl tracking-wide font-black mt-2 text-[#83450F]">
-                {data.kanan[5]?.nilai ?? 0}%
+                {data?.kanan?.[5]?.nilai ?? 0}%
               </h2>
             </div>
             <div className="bg-[#FEE8CC] p-3 flex items-center justify-center aspect-square rounded-2xl w-12 h-12">
