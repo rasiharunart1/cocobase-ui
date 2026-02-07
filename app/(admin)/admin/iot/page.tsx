@@ -29,8 +29,8 @@ export default function IoTDashboard() {
         if (!selectedDevice) return;
 
         setWeight(0);
-        setThreshold(selectedDevice.threshold);
-        setRelayThreshold(selectedDevice.relayThreshold);
+        setThreshold(selectedDevice.threshold || 10);
+        setRelayThreshold(selectedDevice.relayThreshold || 10);
         fetchLogs(selectedDevice.id);
 
         // Poll for latest weight reading every 2 seconds
