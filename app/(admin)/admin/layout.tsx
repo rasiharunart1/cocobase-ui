@@ -3,7 +3,7 @@ import { poppins } from "@/app/ui/fonts";
 import "../../globals.css";
 import SideNav from "@/app/ui/admin/sidenav";
 import TopBar from "@/app/ui/admin/topBar";
-import { ToastContainer } from 'react-toastify';
+import ToastProvider from "@/app/ui/ToastProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className={`${poppins.className}`}>
         <div className="flex h-screen bg-[#F2F2F2] flex-col md:flex-row md:overflow-hidden">
           {/* SideNav */}
-          <ToastContainer />
+          <ToastProvider />
           <div className="w-full flex-none md:w-64">
             <SideNav />
           </div>
