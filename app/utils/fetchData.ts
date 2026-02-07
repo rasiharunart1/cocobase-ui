@@ -77,7 +77,4 @@ export async function getDataNoQuery({
     return data.data;
   } catch (error) {
     console.error("fetchDataNoQuery error:", error);
-    return null;
   }
-}
-}
