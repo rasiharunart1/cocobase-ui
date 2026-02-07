@@ -35,6 +35,7 @@ export default function LoginForm({ thisIsLogin }: { thisIsLogin?: boolean }) {
                 id="username"
                 type="text"
                 name="username"
+                autoComplete="username"
                 placeholder="Enter your username"
                 required
               />
@@ -54,6 +55,7 @@ export default function LoginForm({ thisIsLogin }: { thisIsLogin?: boolean }) {
                 id="password"
                 type="password"
                 name="password"
+                autoComplete="current-password"
                 placeholder="Enter password"
                 required
                 minLength={5}
@@ -75,6 +77,7 @@ export default function LoginForm({ thisIsLogin }: { thisIsLogin?: boolean }) {
                   id="authCode"
                   type="password"
                   name="authCode"
+                  autoComplete="off"
                   placeholder="Enter registration code"
                   required
                 />
