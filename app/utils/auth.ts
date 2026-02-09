@@ -18,6 +18,7 @@ export const signIn = async (provider: string, data: any) => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ username, password }),
         }
       );
@@ -53,6 +54,7 @@ export const signUp = async (provider: string, data: any) => {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ username, password, authCode }),
       }
     );
