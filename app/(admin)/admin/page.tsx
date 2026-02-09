@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const LazyCardTopAdmin = lazy(() => import("@/app/ui/admin/cardTopAdmin"));
 const LazyCardRightAdmin = lazy(() => import("@/app/ui/admin/cardRightAdmin"));
 const LazyPetaniPerformance = lazy(() => import("@/app/ui/admin/PetaniPerformance"));
+const LazyTopFarmersWidget = lazy(() => import("@/app/ui/admin/TopFarmersWidget"));
 import RealtimeDashboardListener from "@/app/ui/admin/RealtimeDashboardListener";
 
 export default function Page() {
@@ -42,6 +43,17 @@ export default function Page() {
           </div>
           <Suspense fallback={<SkeletonCardRightAdmin />}>
             <LazyCardRightAdmin />
+          </Suspense>
+        </section>
+
+        {/* Top Farmers Ranking Section */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-xl font-black text-gray-800 uppercase tracking-widest italic border-l-4 border-yellow-500 pl-4">Ranking Petani</h2>
+            <div className="h-[1px] flex-grow bg-gray-100"></div>
+          </div>
+          <Suspense fallback={<SkeletonCardRightAdmin />}>
+            <LazyTopFarmersWidget />
           </Suspense>
         </section>
 
