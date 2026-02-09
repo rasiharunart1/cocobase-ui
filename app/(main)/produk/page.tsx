@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { SkeletonCard } from "@/app/ui/admin/skeleton/card";
-import { Footer, Chat } from "@/app/(main)/page";
+import { Footer, Chat } from "@/app/(main)/HomeView";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Produk",
-    description: "Dapatkan informasi menarik, resep, dan tren terkini seputar gula kelapa.",    
+    description: "Dapatkan informasi menarik, resep, dan tren terkini seputar gula kelapa.",
   },
 };
 
