@@ -24,6 +24,7 @@ export default function TopFarmersWidget() {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
                 cache: "no-store",
+                credentials: "include",  // Include cookies for authentication
             });
             const data = await res.json();
             if (data.success && data.data.topFarmers) {
