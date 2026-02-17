@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiAccount, mdiCamera, mdiCheck, mdiClose, mdiPencil } from "@mdi/js";
+import { mdiAccount, mdiCamera, mdiCheck, mdiClose, mdiPencil, mdiLock } from "@mdi/js";
 import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -12,6 +12,14 @@ export default function AdminProfile() {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({ username: "", nama: "" });
     const [loading, setLoading] = useState(true);
+
+    // Password Form States
+    const [passwordForm, setPasswordForm] = useState({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [isPasswordFormVisible, setIsPasswordFormVisible] = useState(false);
 
     // Image Crop States
     const [imgSrc, setImgSrc] = useState('');
@@ -63,6 +71,47 @@ export default function AdminProfile() {
             }
         } catch (error) {
             toast.error("Update failed");
+        }
+    };
+
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Client-side validation
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast.error("Password baru tidak cocok!");
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 8) {
+            toast.error("Password minimal 8 karakter!");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/password`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    oldPassword: passwordForm.oldPassword,
+                    newPassword: passwordForm.newPassword
+                }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success("Password berhasil diubah!");
+                setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+                setIsPasswordFormVisible(false);
+            } else {
+                toast.error(data.message || "Gagal mengubah password");
+            }
+        } catch (error) {
+            toast.error("Terjadi kesalahan");
         }
     };
 
@@ -224,6 +273,89 @@ export default function AdminProfile() {
                             </div>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Password Change Section */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mt-6">
+                <div className="p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <Icon path={mdiLock} size={1} className="text-red-600" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-800">Keamanan</h2>
+                            </div>
+                            <p className="text-sm text-gray-500">Ubah password untuk keamanan akun Anda</p>
+                        </div>
+                        <button
+                            onClick={() => setIsPasswordFormVisible(!isPasswordFormVisible)}
+                            className="bg-gray-100 text-gray-700 font-bold px-6 py-2.5 rounded-xl hover:bg-gray-200 transition flex items-center gap-2"
+                        >
+                            <Icon path={isPasswordFormVisible ? mdiClose : mdiPencil} size={0.8} />
+                            {isPasswordFormVisible ? "BATAL" : "UBAH PASSWORD"}
+                        </button>
+                    </div>
+
+                    {isPasswordFormVisible && (
+                        <form onSubmit={handleUpdatePassword} className="grid grid-cols-1 gap-6 border-t pt-6">
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                                    Password Lama
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={passwordForm.oldPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 focus:border-[#00B69B] outline-none transition font-bold"
+                                    placeholder="Masukkan password lama"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                                        Password Baru
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={passwordForm.newPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 focus:border-[#00B69B] outline-none transition font-bold"
+                                        placeholder="Minimal 8 karakter"
+                                        minLength={8}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                                        Konfirmasi Password Baru
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={passwordForm.confirmPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 focus:border-[#00B69B] outline-none transition font-bold"
+                                        placeholder="Ulangi password baru"
+                                        minLength={8}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <button
+                                    type="submit"
+                                    className="bg-[#00B69B] text-white font-black px-10 py-3 rounded-xl shadow-lg shadow-[#00B69B]/20 hover:scale-[1.02] active:scale-95 transition"
+                                >
+                                    SIMPAN PASSWORD BARU
+                                </button>
+                            </div>
+                        </form>
+                    )}
                 </div>
             </div>
 
