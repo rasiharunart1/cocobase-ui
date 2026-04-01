@@ -1,10 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { getData } from "@/app/utils/fetchData";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan, mdiRefresh, mdiCounter, mdiScaleBalance, mdiCheckDecagram, mdiAccountPlus, mdiWrench, mdiPlay, mdiStop } from "@mdi/js";
+import {
+  mdiDevices, mdiWeightKilogram, mdiCog, mdiHistory, mdiTrashCan,
+  mdiRefresh, mdiCounter, mdiScaleBalance, mdiAccountPlus, mdiWrench,
+  mdiPlay, mdiStop
+} from "@mdi/js";
+import {
+  fetchDevicesAction,
+  fetchLogsAction,
+  fetchLatestWeightAction,
+  updateThresholdsAction,
+  verifyPackingAction,
+  deleteLogAction,
+  resetLogsAction,
+  sendCommandAction,
+} from "./actions";
 
 export default function IoTDashboard() {
     const [weight, setWeight] = useState<number>(0);
@@ -15,6 +29,7 @@ export default function IoTDashboard() {
     const [selectedDevice, setSelectedDevice] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [petanis, setPetanis] = useState<any[]>([]);
+    const [isPending, startTransition] = useTransition();
 
     // Calibration State
     const [isCalModalOpen, setIsCalModalOpen] = useState(false);
@@ -33,28 +48,24 @@ export default function IoTDashboard() {
         setRelayThreshold(selectedDevice.relayThreshold || 10);
         fetchLogs(selectedDevice.id);
 
-        // Poll for latest weight reading every 2 seconds
-        const weightInterval = setInterval(async () => {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/loadcell/latest/${selectedDevice.id}`);
-                const data = await res.json();
-                if (data.success && data.data) {
-                    setWeight(data.data.weight);
-
-                    // Check if weight exceeds threshold and device is ready
-                    if (data.data.weight >= selectedDevice.threshold) {
-                        // Refresh logs to check for new packing events
-                        fetchLogs(selectedDevice.id);
+        // Poll for latest weight reading every 2 seconds via server action
+        const weightInterval = setInterval(() => {
+            startTransition(async () => {
+                try {
+                    const data = await fetchLatestWeightAction(selectedDevice.id);
+                    if (data) {
+                        setWeight(data.weight);
+                        if (data.weight >= selectedDevice.threshold) {
+                            fetchLogs(selectedDevice.id);
+                        }
                     }
+                } catch (error) {
+                    console.error("Gagal mengambil data berat", error);
                 }
-            } catch (error) {
-                console.error("Gagal mengambil data berat", error);
-            }
+            });
         }, 2000);
 
-        return () => {
-            clearInterval(weightInterval);
-        };
+        return () => clearInterval(weightInterval);
     }, [selectedDevice]);
 
     const fetchPetanis = async () => {
@@ -68,15 +79,12 @@ export default function IoTDashboard() {
         }
     };
 
-    // Session management removed - logs are now auto-created and farmers assigned via dropdown
-
     const fetchDevices = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/devices`);
-            const data = await res.json();
-            if (data.success && data.data.length > 0) {
-                setDevices(data.data);
-                setSelectedDevice(data.data[0]);
+            const result = await fetchDevicesAction();
+            if (result.success && result.data.length > 0) {
+                setDevices(result.data);
+                setSelectedDevice(result.data[0]);
             } else {
                 setLoading(false);
             }
@@ -88,10 +96,9 @@ export default function IoTDashboard() {
 
     const fetchLogs = async (deviceId: number) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/loadcell/logs/${deviceId}`);
-            const data = await res.json();
-            if (data.success) {
-                setLogs(data.data);
+            const result = await fetchLogsAction(deviceId);
+            if (result.success) {
+                setLogs(result.data);
             }
             setLoading(false);
         } catch (error) {
@@ -103,19 +110,13 @@ export default function IoTDashboard() {
     const updateThresholds = async () => {
         if (!selectedDevice) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/devices/${selectedDevice.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    threshold: threshold,
-                    relayThreshold: relayThreshold
-                }),
-            });
-            const data = await res.json();
+            const data = await updateThresholdsAction(selectedDevice.id, threshold, relayThreshold);
             if (data.success) {
                 setThreshold(data.data.threshold);
                 setRelayThreshold(data.data.relayThreshold);
                 toast.success("Pengaturan tersimpan!");
+            } else {
+                toast.error(data.message || "Gagal menyimpan");
             }
         } catch (error) {
             toast.error("Gagal menyimpan");
@@ -125,12 +126,7 @@ export default function IoTDashboard() {
     const handleVerifyLog = async (logId: number, petaniId: number) => {
         if (!petaniId) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/verify/${logId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ petaniId }),
-            });
-            const data = await res.json();
+            const data = await verifyPackingAction(logId, petaniId);
             if (data.success) {
                 toast.success("Berhasil diverifikasi!");
                 fetchLogs(selectedDevice.id);
@@ -145,10 +141,7 @@ export default function IoTDashboard() {
     const handleDeleteLog = async (logId: number) => {
         if (!confirm("Yakin ingin menghapus log ini?")) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/${logId}`, {
-                method: "DELETE",
-            });
-            const data = await res.json();
+            const data = await deleteLogAction(logId);
             if (data.success) {
                 toast.success("Log dihapus");
                 fetchLogs(selectedDevice.id);
@@ -166,10 +159,7 @@ export default function IoTDashboard() {
         if (confirmReset !== "RESET") return;
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/logs/reset/${selectedDevice.id}`, {
-                method: "DELETE",
-            });
-            const data = await res.json();
+            const data = await resetLogsAction(selectedDevice.id);
             if (data.success) {
                 toast.success("Semua log berhasil direset");
                 fetchLogs(selectedDevice.id);
@@ -185,32 +175,22 @@ export default function IoTDashboard() {
         if (!selectedDevice) return;
 
         try {
-            const payload: any = { type };
+            let commandValue = value;
             if (type === "CALIBRATE") {
                 if (!value || value <= 0) {
                     toast.error("Masukkan berat yang valid");
                     return;
                 }
-
                 const currentFactor = selectedDevice.calibrationFactor || 2280.0;
                 const reading = weight;
-
                 if (reading === 0) {
                     toast.error("Letakkan beban sebelum kalibrasi!");
                     return;
                 }
-
-                const newFactor = (reading / value) * currentFactor;
-                payload.value = newFactor;
+                commandValue = (reading / value) * currentFactor;
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/iot/commands/${selectedDevice.id}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await res.json();
+            const data = await sendCommandAction(selectedDevice.id, type, commandValue);
             if (data.success) {
                 toast.success(`Perintah ${type} terkirim!`);
                 if (type === "CALIBRATE") {
@@ -479,6 +459,7 @@ export default function IoTDashboard() {
                     </table>
                 </div>
             </div>
+
             {/* Calibration Modal */}
             {isCalModalOpen && selectedDevice && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[100] backdrop-blur-sm">
