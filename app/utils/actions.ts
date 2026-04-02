@@ -57,13 +57,22 @@ export async function register(
   }
 }
 
-export async function SignOut() {
+export async function SignOut(
+  prevState: any,
+  formData: FormData
+) {
   try {
+    // Hapus dari localStorage (client-side)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
+    // Hapus httpOnly cookie (server action)
     await signOut();
-    window.location.href = "/admin";
+    // Redirect ke landing page
+    window.location.href = "/";
   } catch (error) {
     toast.error("Logout gagal!");
-    return { success: false, message: "Authentication failed" };
+    return { success: false, message: "Logout failed" };
   }
 }
 
